@@ -1,13 +1,21 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ─── CSS Variables (dark only) ─── */
 
-.dark {
-  --background: #0a0a0a;
+:root {
+  --background: #0a0a12;
   --foreground: #ededed;
+  --bg: #0a0a12;
+  --bg-secondary: #111827;
+  --bg-card: #1f2937;
+  --text: #f3f4f6;
+  --text-secondary: #d1d5db;
+  --text-muted: #6b7280;
+  --border: #374151;
+  --primary: #1e90ff;
+  --accent: #3b82f6;
+  --primary-glow: rgba(30, 144, 255, 0.3);
+  --shadow: rgba(0, 0, 0, 0.4);
 }
 
 @theme inline {
@@ -17,45 +25,17 @@
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg);
+  color: var(--text);
   font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
 }
 
-/* ─── Theme curtain transition ─── */
+/* ─── Logo ─── */
 
-.theme-curtain {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  transform: translateY(-100%);
-}
-
-.theme-curtain.slide-in {
-  animation: curtain-in 0.35s ease-in forwards;
-}
-
-.theme-curtain.slide-out {
-  animation: curtain-out 0.35s ease-out forwards;
-}
-
-@keyframes curtain-in {
-  from {
-    transform: translateY(-100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-@keyframes curtain-out {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(100%);
-  }
+.logo-img {
+  filter: brightness(0) invert(1)
+          drop-shadow(0 0 8px rgba(30, 144, 255, 0.4))
+          drop-shadow(0 0 24px rgba(30, 144, 255, 0.2));
 }
 
 /* ─── Hamburger menu ─── */
@@ -82,82 +62,472 @@ body {
   transform: translateY(-7px) rotate(-45deg);
 }
 
-/* ─── Liquid button ─── */
+/* ─── Liquid button (CodePen fliseno1k/WNboLBy) ─── */
 
 .liquid-btn {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 14px 48px;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: #3b82f6;
-  border: 2px solid #3b82f6;
-  border-radius: 9999px;
-  overflow: hidden;
+  padding: 20px 50px;
+  display: inline-block;
   text-decoration: none;
-  transition: color 0.3s ease;
+  text-transform: uppercase;
+  width: 280px;
+  overflow: hidden;
+  border-radius: 40px;
+  text-align: center;
   cursor: pointer;
-}
-
-.liquid-btn:hover {
-  color: #ffffff;
+  border: none;
+  background: transparent;
 }
 
 .liquid-btn-text {
   position: relative;
-  z-index: 2;
-}
-
-.liquid {
-  position: absolute;
-  inset: -4px;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: Arial, sans-serif;
+  letter-spacing: 4px;
+  white-space: nowrap;
   z-index: 1;
-  background: #3b82f6;
-  transition: top 0.3s ease;
-  top: 100%;
-  border-radius: 9999px;
 }
 
-.liquid::before,
-.liquid::after {
-  content: "";
+.liquid-btn .liquid {
   position: absolute;
+  top: -100px;
+  left: 0;
+  width: 100%;
+  height: 300px;
+  background: #4973ff;
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.5);
+  transition: 0.5s;
+}
+
+.liquid-btn .liquid::after,
+.liquid-btn .liquid::before {
+  content: '';
   width: 200%;
   height: 200%;
-  top: -180%;
+  position: absolute;
+  top: 0;
   left: 50%;
-  transform: translateX(-50%);
-  background: rgba(10, 10, 10, 0.9);
+  transform: translate(-50%, -75%);
 }
 
-.dark .liquid::before,
-.dark .liquid::after {
-  background: rgba(10, 10, 10, 0.9);
-}
-
-.liquid::before {
+.liquid-btn .liquid::before {
   border-radius: 45%;
-  animation: liquid-rotate 4s linear infinite;
+  animation: liquid-animate 5s linear infinite;
 }
 
-.liquid::after {
+.liquid-btn .liquid::after {
   border-radius: 40%;
-  animation: liquid-rotate 6s linear infinite reverse;
+  animation: liquid-animate 10s linear infinite;
 }
 
 .liquid-btn:hover .liquid {
-  top: -24px;
+  top: -190px;
 }
 
-@keyframes liquid-rotate {
+/* Hero is always dark, so pseudo-elements match the dark overlay */
+.liquid-btn--hero .liquid::before {
+  background: rgba(10, 10, 18, 1);
+}
+
+.liquid-btn--hero .liquid::after {
+  background: rgba(10, 10, 18, 0.5);
+}
+
+/* Form context: dark background */
+.liquid-btn--form .liquid::before {
+  background: rgba(10, 10, 18, 1);
+}
+
+.liquid-btn--form .liquid::after {
+  background: rgba(10, 10, 18, 0.5);
+}
+
+@keyframes liquid-animate {
+  0% {
+    transform: translate(-50%, -75%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -75%) rotate(360deg);
+  }
+}
+
+/* ─── Chat widget ─── */
+
+.chat-toggle-btn {
+  transition: transform 0.2s ease;
+}
+.chat-toggle-btn:hover {
+  transform: scale(1.05);
+}
+
+/* Animated sparkle icon wrapper */
+.chat-icon-wrapper {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.chat-icon-border {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(0deg);
+  border: 3px solid transparent;
+  border-radius: 20%;
+  background: linear-gradient(45deg, var(--primary), var(--accent), #fff, var(--primary));
+  background-size: 200% 200%;
+  animation: chatBorderRotate 10s linear infinite,
+             chatBorderMorph 6s ease-in-out infinite alternate,
+             chatBorderColor 6s linear infinite;
+  box-shadow: 0 0 15px var(--primary-glow);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) padding-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+  transition: opacity 0.3s ease;
+}
+
+.chat-toggle-btn:hover .chat-icon-border {
+  animation-play-state: paused;
+  opacity: 1;
+}
+
+.chat-icon-svg {
+  width: 28px;
+  height: 28px;
+  z-index: 2;
+  fill: white;
+  stroke: white;
+  animation: chatIconPulse 2s ease-in-out infinite;
+  transition: transform 0.4s ease, fill 0.4s ease;
+}
+
+.chat-toggle-btn:hover .chat-icon-svg {
+  fill: url(#chat-icon-grad);
+  animation: chatIconRotate 2s linear 3;
+}
+
+/* Origami-style spinning coins (Item3) — JS-driven transforms */
+.coins-orbit {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  z-index: 2;
+}
+
+.coins-pos {
+  position: absolute;
+  transform-style: preserve-3d;
+  perspective: 120px;
+}
+
+.coins-disc {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--primary),
+    var(--accent),
+    #fff,
+    var(--primary)
+  );
+  background-size: 300% 300%;
+  animation: coinsDiscColor 5s linear infinite;
+  box-shadow: 0 0 5px var(--primary-glow);
+}
+
+@keyframes coinsDiscColor {
+  0%   { background-position: 0% 0%; }
+  50%  { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+.chat-toggle-btn:hover .coins-disc {
+  box-shadow: 0 0 10px var(--primary-glow);
+}
+
+@keyframes chatBorderRotate {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+@keyframes chatBorderMorph {
+  0% { border-radius: 10%; scale: 1; }
+  25% { border-radius: 50%; scale: 1.05; }
+  50% { border-radius: 60% 40% / 40% 60%; scale: 1.1; }
+  75% { border-radius: 35%; scale: 1.05; }
+  100% { border-radius: 10%; scale: 1; }
+}
+@keyframes chatBorderColor {
+  0% { background-position: 0% 50%; box-shadow: 0 0 15px var(--primary-glow); }
+  50% { background-position: 100% 50%; box-shadow: 0 0 15px var(--accent); }
+  100% { background-position: 0% 50%; box-shadow: 0 0 15px var(--primary-glow); }
+}
+@keyframes chatIconPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.1); opacity: 0.9; }
+}
+@keyframes chatIconRotate {
+  0% { transform: scale(1) rotate(0deg); }
+  100% { transform: scale(1) rotate(360deg); }
+}
+
+.chat-widget-panel {
+  position: fixed;
+  bottom: 80px;
+  right: 24px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  box-shadow: 0 25px 60px var(--shadow), 0 8px 20px var(--shadow);
+  backdrop-filter: blur(20px);
+  transform: translateY(20px) scale(0.95);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-widget-panel.open {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (max-width: 767px) {
+  .chat-widget-panel {
+    right: 8px;
+    left: 8px;
+    bottom: 76px;
+    width: auto !important;
+  }
+}
+
+/* ─── Estimator animated background (CodePen ahmedriad1/BaamKgv) ─── */
+
+.estimator-section {
+  background: linear-gradient(-45deg, #3f51b1 0%, #5a55ae 13%, #7b5fac 25%, #8f6aae 38%, #a86aa4 50%, #cc6b8e 62%, #f18271 75%, #f3a469 87%, #f7c978 100%);
+  background-size: 400% 400%;
+  animation: estimator-bg-shift 7.5s ease-in-out infinite;
+}
+
+@keyframes estimator-bg-shift {
+  0%   { background-position: 0 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+/* ─── Section layout helpers ─── */
+
+.section-container {
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 6rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .section-container { padding-left: 1.5rem; padding-right: 1.5rem; }
+}
+@media (min-width: 1024px) {
+  .section-container { padding-left: 2rem; padding-right: 2rem; }
+}
+
+.section-title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  text-align: center;
+  color: var(--text);
+  margin-bottom: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .section-title { font-size: 3rem; }
+}
+
+.section-subtitle {
+  font-size: 1.125rem;
+  color: var(--text-muted);
+  text-align: center;
+  max-width: 42rem;
+  margin: 0 auto 3rem;
+}
+
+/* ─── Glassmorphic cards ─── */
+
+.glass-card {
+  padding: 1.5rem;
+  border-radius: 1rem;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.glass-card:hover {
+  transform: translateY(-2px);
+}
+
+.glass-card-elevated {
+  padding: 2rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 30px var(--shadow);
+}
+
+/* ─── Form inputs used in AI Estimator ─── */
+
+.form-input {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.form-input::placeholder {
+  color: var(--text-muted);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 4.5rem;
+}
+
+/* ─── Animations ─── */
+
+@keyframes fade-in-up {
   from {
-    transform: translateX(-50%) rotate(0deg);
+    opacity: 0;
+    transform: translateY(16px);
   }
   to {
-    transform: translateX(-50%) rotate(360deg);
+    opacity: 1;
+    transform: translateY(0);
   }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s ease-out forwards;
+}
+
+@keyframes progressBar {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+.animate-progress-bar {
+  animation: progressBar 2.5s ease-in-out forwards;
+}
+
+/* ─── Pricing Bubbles Background ─── */
+
+.pricing-bubbles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  overflow: hidden;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.pricing-bubble {
+  position: absolute;
+  bottom: -100px;
+  border-radius: 50%;
+  animation: pricing-float 10s infinite ease-in;
+}
+
+.pricing-bubble:nth-child(odd) {
+  background: var(--accent);
+}
+.pricing-bubble:nth-child(even) {
+  background: var(--primary);
+}
+.pricing-bubble:nth-child(3n) {
+  background: rgba(59, 130, 246, 0.8);
+}
+.pricing-bubble:nth-child(5n) {
+  background: rgba(96, 165, 250, 0.7);
+}
+
+.pricing-bubble-1  { width: 30px;  height: 30px;  left: 5%;   animation-duration: 8s;  }
+.pricing-bubble-2  { width: 20px;  height: 20px;  left: 15%;  animation-duration: 5s;  animation-delay: 1s; }
+.pricing-bubble-3  { width: 50px;  height: 50px;  left: 25%;  animation-duration: 10s; animation-delay: 2s; }
+.pricing-bubble-4  { width: 80px;  height: 80px;  left: 40%;  animation-duration: 7s;  animation-delay: 0s; }
+.pricing-bubble-5  { width: 35px;  height: 35px;  left: 50%;  animation-duration: 6s;  animation-delay: 1s; }
+.pricing-bubble-6  { width: 45px;  height: 45px;  left: 60%;  animation-duration: 8s;  animation-delay: 3s; }
+.pricing-bubble-7  { width: 25px;  height: 25px;  left: 70%;  animation-duration: 7s;  animation-delay: 2s; }
+.pricing-bubble-8  { width: 80px;  height: 80px;  left: 80%;  animation-duration: 6s;  animation-delay: 1s; }
+.pricing-bubble-9  { width: 15px;  height: 15px;  left: 68%;  animation-duration: 9s;  animation-delay: 0s; }
+.pricing-bubble-10 { width: 50px;  height: 50px;  left: 88%;  animation-duration: 8s;  animation-delay: 5s; }
+.pricing-bubble-11 { width: 35px;  height: 35px;  left: 18%;  animation-duration: 3s;  animation-delay: 1s; }
+.pricing-bubble-12 { width: 40px;  height: 40px;  left: 8%;   animation-duration: 6s;  animation-delay: 1s; }
+.pricing-bubble-13 { width: 60px;  height: 60px;  left: 33%;  animation-duration: 8s;  animation-delay: 4s; }
+.pricing-bubble-14 { width: 22px;  height: 22px;  left: 92%;  animation-duration: 7s;  animation-delay: 2s; }
+.pricing-bubble-15 { width: 55px;  height: 55px;  left: 48%;  animation-duration: 11s; animation-delay: 3s; }
+
+@keyframes pricing-float {
+  0% {
+    bottom: -100px;
+    transform: translateX(0) scale(1);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.25;
+  }
+  50% {
+    transform: translateX(80px) scale(1.1);
+    opacity: 0.2;
+  }
+  90% {
+    opacity: 0.1;
+  }
+  100% {
+    bottom: 110%;
+    transform: translateX(-60px) scale(0.8);
+    opacity: 0;
+  }
+}
+
+/* Hide scrollbar for horizontal scroll containers */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Selection color */
+::selection {
+  background: rgba(30, 144, 255, 0.3);
+  color: #fff;
 }

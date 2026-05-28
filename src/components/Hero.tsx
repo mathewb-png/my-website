@@ -7,88 +7,107 @@ const videoSources = [
   "/videos/slowmo.mp4",
   "/videos/cleaning.mp4",
   "/videos/pressure-wash.mp4",
+  "/videos/nozzle.mp4",
+  "/videos/boat-cleaning.mp4",
+  "/videos/slowmo-wash.mp4",
 ];
 
 const ROTATION_INTERVAL = 8000;
+const CROSSFADE_MS = 1000;
 
 export default function Hero() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [nextIndex, setNextIndex] = useState<number | null>(null);
+  const activeRef = useRef(0);
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
-  const cycleVideo = useCallback(() => {
-    setNextIndex((prev) => {
-      const next = ((prev ?? activeIndex) + 1) % videoSources.length;
-      return next;
-    });
-
-    setTimeout(() => {
-      setActiveIndex((prev) => (prev + 1) % videoSources.length);
-      setNextIndex(null);
-    }, 1000);
-  }, [activeIndex]);
-
-  useEffect(() => {
-    const timer = setInterval(cycleVideo, ROTATION_INTERVAL);
-    return () => clearInterval(timer);
-  }, [cycleVideo]);
-
-  useEffect(() => {
-    videoRefs.current.forEach((v) => {
-      if (v) {
-        v.play().catch(() => {});
-      }
-    });
+  const playVideo = useCallback((el: HTMLVideoElement | null) => {
+    if (!el) return;
+    el.currentTime = 0;
+    el.play().catch(() => {});
   }, []);
+
+  const pauseVideo = useCallback((el: HTMLVideoElement | null) => {
+    if (!el) return;
+    el.pause();
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const current = activeRef.current;
+      const next = (current + 1) % videoSources.length;
+
+      playVideo(videoRefs.current[next]);
+      setNextIndex(next);
+
+      setTimeout(() => {
+        pauseVideo(videoRefs.current[current]);
+        activeRef.current = next;
+        setActiveIndex(next);
+        setNextIndex(null);
+      }, CROSSFADE_MS);
+    }, ROTATION_INTERVAL);
+
+    return () => clearInterval(timer);
+  }, [playVideo, pauseVideo]);
+
+  useEffect(() => {
+    playVideo(videoRefs.current[0]);
+  }, [playVideo]);
 
   return (
     <section
       id="hero"
+      aria-labelledby="hero-title"
       className="relative flex min-h-screen items-center justify-center overflow-hidden"
     >
-      {/* Video backgrounds */}
-      {videoSources.map((src, i) => (
-        <video
-          key={src}
-          ref={(el) => {
-            videoRefs.current[i] = el;
-          }}
-          src={src}
-          muted
-          autoPlay
-          loop
-          playsInline
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${
-            i === activeIndex
-              ? "opacity-100"
-              : i === nextIndex
-                ? "opacity-100"
-                : "opacity-0"
-          }`}
-          style={{ zIndex: i === nextIndex ? 2 : i === activeIndex ? 1 : 0 }}
-        />
-      ))}
+      {/* Video backgrounds — only active + next are visible */}
+      {videoSources.map((src, i) => {
+        const isActive = i === activeIndex;
+        const isNext = i === nextIndex;
+        const visible = isActive || isNext;
+
+        return (
+          <video
+            key={src}
+            ref={(el) => {
+              videoRefs.current[i] = el;
+            }}
+            src={src}
+            muted
+            loop
+            playsInline
+            preload={i <= 1 ? "auto" : "metadata"}
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${
+              visible ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+            style={{ zIndex: isNext ? 2 : isActive ? 1 : 0 }}
+          />
+        );
+      })}
 
       {/* Dark overlay */}
       <div className="absolute inset-0 z-10 bg-gradient-to-t from-gray-950 via-gray-950/60 to-gray-950/40" />
 
       {/* Content */}
       <div className="relative z-20 mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
-        <h1 className="mb-6 text-5xl font-extrabold leading-tight tracking-tight text-white md:text-6xl lg:text-7xl">
-          Professional Power Washing
-          <span className="mt-2 block text-blue-400">
+        <h1 id="hero-title" className="mb-6">
+          <span className="block text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
+            Professional Power Washing
+          </span>
+          <span className="mt-1 block text-2xl font-bold leading-snug text-[var(--primary)] sm:text-3xl md:text-4xl lg:text-5xl">
             That Makes Everything Look New Again
           </span>
         </h1>
-        <p className="mx-auto mb-10 max-w-2xl text-lg text-gray-300 md:text-xl">
+        <p className="mx-auto mb-10 max-w-2xl text-base font-normal leading-relaxed text-gray-400 sm:text-lg md:text-xl">
           Serving HOAs, commercial properties, leasing offices, and residential
           homes. Get a free AI-powered estimate in seconds.
         </p>
 
-        {/* Liquid button */}
-        <a href="#estimator" className="liquid-btn">
-          <span className="liquid-btn-text">Get Free Estimate</span>
-          <div className="liquid" />
+        {/* Liquid button (CodePen fliseno1k/WNboLBy) */}
+        <a href="#estimator" className="liquid-btn liquid-btn--hero">
+          <span className="liquid-btn-text">Get Estimate</span>
+          <div className="liquid"></div>
         </a>
       </div>
 

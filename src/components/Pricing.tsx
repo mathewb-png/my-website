@@ -73,10 +73,12 @@ const tiers: PricingTier[] = [
   },
 ];
 
+const BUBBLE_COUNT = 15;
+
 function CheckIcon() {
   return (
     <svg
-      className="h-5 w-5 shrink-0 text-blue-500 dark:text-blue-400"
+      className="h-5 w-5 shrink-0 text-blue-400"
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
@@ -87,18 +89,31 @@ function CheckIcon() {
   );
 }
 
+function PricingBubbles() {
+  return (
+    <div className="pricing-bubbles" aria-hidden="true">
+      {Array.from({ length: BUBBLE_COUNT }, (_, i) => (
+        <div key={i} className={`pricing-bubble pricing-bubble-${i + 1}`} />
+      ))}
+    </div>
+  );
+}
+
 export default function Pricing() {
   return (
     <section
       id="pricing"
-      className="relative py-24 px-4 sm:px-6 lg:px-8 bg-white dark:bg-zinc-900/50"
+      aria-labelledby="pricing-title"
+      className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
     >
-      <div className="mx-auto max-w-7xl">
+      <PricingBubbles />
+
+      <div className="relative z-10 mx-auto max-w-7xl">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+          <h2 id="pricing-title" className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
             Pricing Packages
           </h2>
-          <p className="mt-4 text-lg text-gray-600 dark:text-zinc-400 max-w-2xl mx-auto">
+          <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto">
             Transparent pricing for every need
           </p>
         </div>
@@ -108,11 +123,11 @@ export default function Pricing() {
             <div
               key={tier.name}
               className={`relative flex flex-col rounded-2xl border p-8 transition-all duration-300
-                hover:-translate-y-1 hover:shadow-lg
+                hover:-translate-y-1 hover:shadow-lg backdrop-blur-sm
                 ${
                   tier.popular
-                    ? "border-blue-500 dark:border-blue-400 shadow-lg shadow-blue-500/20 dark:shadow-blue-500/30 bg-white dark:bg-white/[0.07]"
-                    : "border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 hover:border-gray-300 dark:hover:border-white/20"
+                    ? "border-blue-400 shadow-lg shadow-blue-500/30 bg-white/[0.07]"
+                    : "border-white/10 bg-white/5 hover:border-white/20"
                 }`}
             >
               {tier.popular && (
@@ -127,18 +142,18 @@ export default function Pricing() {
               )}
 
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                <h3 className="text-lg font-semibold text-white">
                   {tier.name}
                 </h3>
                 <div className="mt-3 flex items-baseline gap-1">
-                  <span className="text-sm text-gray-500 dark:text-zinc-400">
+                  <span className="text-sm text-zinc-400">
                     {tier.priceLabel}
                   </span>
                   <span
                     className={`text-4xl font-bold tracking-tight ${
                       tier.popular
-                        ? "text-blue-600 dark:text-blue-400"
-                        : "text-gray-900 dark:text-white"
+                        ? "text-blue-400"
+                        : "text-white"
                     }`}
                   >
                     {tier.price}
@@ -146,13 +161,13 @@ export default function Pricing() {
                 </div>
               </div>
 
-              <div className="h-px bg-gray-200 dark:bg-white/10 mb-6" />
+              <div className="h-px bg-white/10 mb-6" />
 
               <ul className="flex-1 space-y-4 mb-8">
                 {tier.features.map((feature) => (
                   <li key={feature.text} className="flex items-start gap-3">
                     <CheckIcon />
-                    <span className="text-sm text-gray-700 dark:text-zinc-300">
+                    <span className="text-sm text-zinc-300">
                       {feature.text}
                     </span>
                   </li>
@@ -166,7 +181,7 @@ export default function Pricing() {
                   ${
                     tier.popular
                       ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/30 hover:-translate-y-0.5"
-                      : "border border-gray-300 dark:border-white/15 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-white/10 hover:-translate-y-0.5"
+                      : "border border-white/15 text-white hover:bg-white/10 hover:-translate-y-0.5"
                   }`}
               >
                 {tier.cta}

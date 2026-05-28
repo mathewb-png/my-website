@@ -96,14 +96,15 @@ export default function Services() {
   return (
     <section
       id="services"
-      className="relative py-24 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-zinc-950"
+      aria-labelledby="services-title"
+      className="relative py-24 px-4 sm:px-6 lg:px-8 bg-zinc-950"
     >
       <div className="mx-auto max-w-7xl">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
+          <h2 id="services-title" className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
             Our Services
           </h2>
-          <p className="mt-4 text-lg text-gray-600 dark:text-zinc-400 max-w-2xl mx-auto">
+          <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto">
             Professional power washing for every property type
           </p>
         </div>
@@ -112,34 +113,30 @@ export default function Services() {
           {services.map((service) => (
             <div
               key={service.title}
-              className="group relative rounded-2xl border border-gray-200 bg-white p-8
-                dark:border-white/10 dark:bg-white/5 backdrop-blur-xl
-                transition-all duration-300
-                hover:-translate-y-2 hover:shadow-xl hover:shadow-blue-500/10
-                hover:border-blue-400/50 dark:hover:border-blue-500/40
-                dark:hover:shadow-blue-500/20"
+              className="group relative rounded-2xl border border-white/10 bg-white/5 p-8
+                backdrop-blur-xl transition-all duration-300
+                hover:-translate-y-2 hover:shadow-xl hover:shadow-blue-500/20
+                hover:border-blue-500/40"
             >
               <div
                 className="mb-5 inline-flex items-center justify-center rounded-xl
-                  bg-blue-50 p-3 text-blue-600
-                  dark:bg-blue-500/10 dark:text-blue-400"
+                  bg-blue-500/10 p-3 text-blue-400"
               >
                 {service.icon}
               </div>
 
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+              <h3 className="text-xl font-semibold text-white mb-3">
                 {service.title}
               </h3>
 
-              <p className="text-gray-600 dark:text-zinc-400 leading-relaxed text-sm">
+              <p className="text-zinc-400 leading-relaxed text-sm">
                 {service.description}
               </p>
 
               <div
                 className="absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300
                   group-hover:opacity-100 pointer-events-none
-                  bg-gradient-to-b from-blue-500/5 to-transparent
-                  dark:from-blue-500/10"
+                  bg-gradient-to-b from-blue-500/10 to-transparent"
               />
             </div>
           ))}
