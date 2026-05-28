@@ -42,3 +42,5 @@ public/videos/pressure-wash.mp4
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel

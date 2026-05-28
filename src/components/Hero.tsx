@@ -6,7 +6,6 @@ const videoSources = [
   "/videos/splash.mp4",
   "/videos/slowmo.mp4",
   "/videos/cleaning.mp4",
-  "/videos/pressure-wash.mp4",
   "/videos/nozzle.mp4",
   "/videos/boat-cleaning.mp4",
   "/videos/slowmo-wash.mp4",
