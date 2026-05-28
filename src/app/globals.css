@@ -319,7 +319,7 @@ body {
 /* ─── Estimator animated background (CodePen ahmedriad1/BaamKgv) ─── */
 
 .estimator-section {
-  background: linear-gradient(-45deg, #3f51b1 0%, #5a55ae 13%, #7b5fac 25%, #8f6aae 38%, #a86aa4 50%, #cc6b8e 62%, #f18271 75%, #f3a469 87%, #f7c978 100%);
+  background: linear-gradient(-45deg, #0a0a12 0%, #0f1a2e 13%, #111827 25%, #152a4a 38%, #1e3a5f 50%, #1e90ff 62%, #3b82f6 75%, #1e3a5f 87%, #0a0a12 100%);
   background-size: 400% 400%;
   animation: estimator-bg-shift 7.5s ease-in-out infinite;
 }
