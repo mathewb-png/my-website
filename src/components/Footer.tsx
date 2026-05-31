@@ -15,12 +15,12 @@ export default function Footer() {
           {/* Brand */}
           <div>
             <Image
-              src="/logo-v3.png"
+              src="/logo-nav-white.png"
               alt="New Day Power Wash"
-              width={160}
-              height={40}
-              style={{ width: "auto", height: "40px" }}
-              className="logo-img mb-4 h-10 w-auto"
+              width={220}
+              height={60}
+              style={{ width: "auto", height: "44px" }}
+              className="logo-img mb-4 h-11 w-auto"
             />
             <p className="max-w-xs text-sm leading-relaxed text-gray-400">
               Professional power washing services that make your property look

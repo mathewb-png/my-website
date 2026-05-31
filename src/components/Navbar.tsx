@@ -25,18 +25,18 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,backdrop-filter,box-shadow,border-color] duration-300 ${
           scrolled
-            ? "bg-gray-950/90 backdrop-blur-xl shadow-lg shadow-black/20 border-b border-white/5"
-            : "bg-gradient-to-b from-gray-950/70 to-transparent backdrop-blur-sm"
+            ? "bg-gray-950/95 shadow-lg shadow-black/20 border-b border-white/5"
+            : "bg-gradient-to-b from-gray-950/80 to-transparent"
         }`}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-18 items-center justify-between md:h-22">
-            {/* Logo */}
-            <a href="#" className="flex-shrink-0">
+            {/* Logo — isolated so backdrop-blur never dims it */}
+            <a href="#" className="relative z-10 flex-shrink-0 isolate">
               <Image
-                src="/logo-nav.png"
+                src="/logo-nav-white.png"
                 alt="New Day Power Wash"
                 width={260}
                 height={80}
