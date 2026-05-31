@@ -36,12 +36,12 @@ export default function Navbar() {
             {/* Logo */}
             <a href="#" className="flex-shrink-0">
               <Image
-                src="/logo-v3.png"
+                src="/logo-nav.png"
                 alt="New Day Power Wash"
-                width={200}
-                height={50}
-                style={{ width: "auto", height: "48px" }}
-                className="logo-img h-12 w-auto"
+                width={260}
+                height={80}
+                style={{ width: "auto", height: "56px" }}
+                className="logo-img h-14 w-auto"
                 priority
               />
             </a>

@@ -5,12 +5,24 @@ import { useState, useRef, useCallback, useEffect } from "react";
 interface AnalysisResult {
   surface: string;
   area: string;
+  areaSqFt?: number;
+  referenceUsed?: string;
+  dimensions?: string;
   condition: "Light" | "Moderate" | "Heavy";
   conditionNotes?: string;
   service: string;
   costLow: number;
   costHigh: number;
   notes?: string;
+}
+
+interface BookingForm {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  preferredDate: string;
+  notes: string;
 }
 
 const SURFACES = [
@@ -64,6 +76,7 @@ export default function AIEstimator() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -74,20 +87,43 @@ export default function AIEstimator() {
 
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const [usingFallback, setUsingFallback] = useState(false);
+  const [referenceDimension, setReferenceDimension] = useState("");
+  const [overrideSqFt, setOverrideSqFt] = useState("");
+  const [reanalyzing, setReanalyzing] = useState(false);
+  const [showBooking, setShowBooking] = useState(false);
+  const [bookingForm, setBookingForm] = useState<BookingForm>({
+    name: "", email: "", phone: "", address: "", preferredDate: "", notes: "",
+  });
+  const [bookingLoading, setBookingLoading] = useState(false);
+  const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [bookingError, setBookingError] = useState("");
 
   const callEstimateAPI = useCallback(async (base64: string, detailsText: string): Promise<AnalysisResult> => {
     const res = await fetch("/api/estimate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ image: base64, details: detailsText }),
+      body: JSON.stringify({
+        image: base64,
+        details: detailsText,
+        referenceDimension: referenceDimension || undefined,
+        overrideSqFt: overrideSqFt ? Number(overrideSqFt) : undefined,
+      }),
     });
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     const data = await res.json();
     return data.result as AnalysisResult;
+  }, [referenceDimension, overrideSqFt]);
+
+  const scrollToResults = useCallback(() => {
+    setTimeout(() => {
+      resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 150);
   }, []);
 
   const handleFile = useCallback((file: File) => {
     if (!file.type.startsWith("image/")) return;
+    setShowBooking(false);
+    setBookingSuccess(false);
     const reader = new FileReader();
     reader.onload = async (e) => {
       const dataUrl = e.target?.result as string;
@@ -96,18 +132,21 @@ export default function AIEstimator() {
       setResult(null);
       setAnalyzing(true);
       setUsingFallback(false);
+      scrollToResults();
       try {
         const apiResult = await callEstimateAPI(dataUrl, details);
         setResult(apiResult);
+        scrollToResults();
       } catch {
         setUsingFallback(true);
         setResult(generateAnalysis());
+        scrollToResults();
       } finally {
         setAnalyzing(false);
       }
     };
     reader.readAsDataURL(file);
-  }, [callEstimateAPI, details]);
+  }, [callEstimateAPI, details, scrollToResults]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -129,8 +168,6 @@ export default function AIEstimator() {
   const openCamera = () => cameraInputRef.current?.click();
   const openGallery = () => fileInputRef.current?.click();
 
-  const [reanalyzing, setReanalyzing] = useState(false);
-
   const handleReanalyze = useCallback(async () => {
     if (!imageDataUrl || usingFallback) return;
     setReanalyzing(true);
@@ -143,6 +180,43 @@ export default function AIEstimator() {
       setReanalyzing(false);
     }
   }, [imageDataUrl, details, callEstimateAPI, usingFallback]);
+
+  const handleBookingSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!result) return;
+    setBookingLoading(true);
+    setBookingError("");
+    try {
+      const res = await fetch("/api/book", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...bookingForm,
+          estimate: {
+            surface: result.surface,
+            area: result.area,
+            areaSqFt: result.areaSqFt,
+            dimensions: result.dimensions,
+            condition: result.condition,
+            service: result.service,
+            costLow: adjustedCost(result.costLow),
+            costHigh: adjustedCost(result.costHigh),
+          },
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to submit");
+      setBookingSuccess(true);
+      setShowBooking(false);
+    } catch {
+      setBookingError("Something went wrong. Please try again or call us directly.");
+    } finally {
+      setBookingLoading(false);
+    }
+  }, [result, bookingForm, adjustedCost]);
+
+  const bookingInputClasses = `w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-[var(--text)]
+    placeholder-[var(--text-muted)] outline-none transition-all duration-200
+    focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/20`;
 
   return (
     <>
@@ -328,7 +402,7 @@ export default function AIEstimator() {
 
           {/* Analysis panel */}
           {(analyzing || result) && (
-            <div className="mt-6 animate-fade-in-up glass-card-elevated">
+            <div ref={resultRef} className="mt-6 animate-fade-in-up glass-card-elevated">
               {analyzing ? (
                 <div className="flex flex-col items-center gap-4 py-8">
                   <div className="relative h-16 w-16">
@@ -371,6 +445,16 @@ export default function AIEstimator() {
                       <p className="mt-1 text-base font-semibold text-[var(--text)]">
                         {result.area}
                       </p>
+                      {result.dimensions && (
+                        <p className="mt-0.5 text-xs text-[var(--text-muted)]">
+                          Dimensions: {result.dimensions}
+                        </p>
+                      )}
+                      {result.referenceUsed && (
+                        <p className="mt-0.5 text-xs text-[var(--text-muted)]">
+                          Scale ref: {result.referenceUsed}
+                        </p>
+                      )}
                     </div>
                     <div className="rounded-xl bg-[var(--bg-card)] p-4 border border-[var(--border)]">
                       <span className="text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">
@@ -455,6 +539,36 @@ export default function AIEstimator() {
                       className="form-input form-textarea"
                       rows={3}
                     />
+
+                    {/* Reference dimension & sq ft override */}
+                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <div>
+                        <label htmlFor="ref-dimension" className="mb-1 block text-xs font-medium text-[var(--text-muted)]">
+                          Reference measurement (optional)
+                        </label>
+                        <input
+                          id="ref-dimension"
+                          type="text"
+                          value={referenceDimension}
+                          onChange={(e) => setReferenceDimension(e.target.value)}
+                          placeholder="e.g., driveway is 20ft wide"
+                          className="form-input text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="override-sqft" className="mb-1 block text-xs font-medium text-[var(--text-muted)]">
+                          Known sq ft (optional override)
+                        </label>
+                        <input
+                          id="override-sqft"
+                          type="number"
+                          value={overrideSqFt}
+                          onChange={(e) => setOverrideSqFt(e.target.value)}
+                          placeholder="e.g., 400"
+                          className="form-input text-xs"
+                        />
+                      </div>
+                    </div>
                     {!usingFallback && imageDataUrl && (
                       <button
                         onClick={handleReanalyze}
@@ -478,21 +592,103 @@ export default function AIEstimator() {
                     )}
                   </div>
 
-                  {/* CTAs */}
-                  <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-                    <a
-                      href="#contact"
-                      className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] px-8 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-[var(--primary-glow)] transition-transform hover:scale-105"
-                    >
-                      Book This Service
-                    </a>
-                    <a
-                      href="#contact"
-                      className="inline-flex items-center justify-center rounded-full border border-[var(--border)] px-8 py-3 text-sm font-bold uppercase tracking-wider text-[var(--text)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
-                    >
-                      Get Exact Quote
-                    </a>
-                  </div>
+                  {/* Booking section */}
+                  {bookingSuccess ? (
+                    <div className="rounded-xl border border-green-500/20 bg-green-500/5 p-6 text-center">
+                      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-500/15">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 text-green-400">
+                          <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <h4 className="text-lg font-bold text-[var(--text)]">Booking Request Sent!</h4>
+                      <p className="mt-1 text-sm text-[var(--text-secondary)]">
+                        We&apos;ll contact you within 24 hours to confirm your appointment.
+                      </p>
+                    </div>
+                  ) : showBooking ? (
+                    <form onSubmit={handleBookingSubmit} className="space-y-4 rounded-xl border border-[var(--primary)]/20 bg-[var(--primary)]/5 p-6">
+                      <h4 className="text-lg font-bold text-[var(--text)]">Book This Service</h4>
+                      <p className="text-xs text-[var(--text-muted)]">
+                        {result.surface} &bull; {result.area} &bull; {result.condition} condition &bull; ${adjustedCost(result.costLow)}–${adjustedCost(result.costHigh)}
+                      </p>
+
+                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <input
+                          type="text" required placeholder="Full Name"
+                          value={bookingForm.name}
+                          onChange={(e) => setBookingForm(f => ({ ...f, name: e.target.value }))}
+                          className={bookingInputClasses}
+                        />
+                        <input
+                          type="email" required placeholder="Email"
+                          value={bookingForm.email}
+                          onChange={(e) => setBookingForm(f => ({ ...f, email: e.target.value }))}
+                          className={bookingInputClasses}
+                        />
+                        <input
+                          type="tel" required placeholder="Phone Number"
+                          value={bookingForm.phone}
+                          onChange={(e) => setBookingForm(f => ({ ...f, phone: e.target.value }))}
+                          className={bookingInputClasses}
+                        />
+                        <input
+                          type="text" required placeholder="Service Address"
+                          value={bookingForm.address}
+                          onChange={(e) => setBookingForm(f => ({ ...f, address: e.target.value }))}
+                          className={bookingInputClasses}
+                        />
+                      </div>
+                      <input
+                        type="date" placeholder="Preferred Date"
+                        value={bookingForm.preferredDate}
+                        onChange={(e) => setBookingForm(f => ({ ...f, preferredDate: e.target.value }))}
+                        className={bookingInputClasses}
+                      />
+                      <textarea
+                        placeholder="Any additional notes..."
+                        rows={2}
+                        value={bookingForm.notes}
+                        onChange={(e) => setBookingForm(f => ({ ...f, notes: e.target.value }))}
+                        className={`${bookingInputClasses} resize-none`}
+                      />
+
+                      {bookingError && (
+                        <p className="text-sm text-red-400">{bookingError}</p>
+                      )}
+
+                      <div className="flex gap-3">
+                        <button
+                          type="submit"
+                          disabled={bookingLoading}
+                          className="flex-1 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] py-3 text-sm font-bold text-white shadow-lg shadow-[var(--primary-glow)] transition-transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {bookingLoading ? "Sending..." : "Confirm Booking Request"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowBooking(false)}
+                          className="rounded-full border border-[var(--border)] px-5 py-3 text-sm font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--primary)]"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                      <button
+                        onClick={() => setShowBooking(true)}
+                        className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] px-8 py-3 text-sm font-bold uppercase tracking-wider text-white shadow-lg shadow-[var(--primary-glow)] transition-transform hover:scale-105"
+                      >
+                        Book This Service
+                      </button>
+                      <a
+                        href="tel:+19255184931"
+                        className="inline-flex items-center justify-center rounded-full border border-[var(--border)] px-8 py-3 text-sm font-bold uppercase tracking-wider text-[var(--text)] transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]"
+                      >
+                        Call for Exact Quote
+                      </a>
+                    </div>
+                  )}
                 </div>
               ) : null}
             </div>
