@@ -32,16 +32,15 @@ export default function Navbar() {
         }`}
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-18 items-center justify-between md:h-22">
+          <div className="flex h-16 items-center justify-between sm:h-18 md:h-22">
             {/* Logo — isolated so backdrop-blur never dims it */}
-            <a href="#" className="relative z-10 flex-shrink-0 isolate">
+            <a href="#" className="relative z-10 min-w-0 flex-shrink isolate">
               <Image
                 src="/logo-nav-white.png"
                 alt="New Day Power Wash"
                 width={260}
                 height={80}
-                style={{ width: "auto", height: "56px" }}
-                className="logo-img h-14 w-auto"
+                className="logo-img h-10 w-auto max-w-[8.75rem] sm:h-12 sm:max-w-[10.5rem] md:h-14 md:max-w-none"
                 priority
               />
             </a>

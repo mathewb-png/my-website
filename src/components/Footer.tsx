@@ -19,8 +19,7 @@ export default function Footer() {
               alt="New Day Power Wash"
               width={220}
               height={60}
-              style={{ width: "auto", height: "44px" }}
-              className="logo-img mb-4 h-11 w-auto"
+              className="logo-img mb-4 h-9 w-auto max-w-[10rem] sm:h-11 sm:max-w-none"
             />
             <p className="max-w-xs text-sm leading-relaxed text-gray-400">
               Professional power washing services that make your property look
