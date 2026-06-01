@@ -17,41 +17,40 @@ interface PricingTier {
 const tiers: PricingTier[] = [
   {
     name: "Residential Basic",
-    price: "$149",
+    price: "$249",
     priceLabel: "Starting at",
     features: [
       { text: "Driveway cleaning (up to 600 sq ft)" },
-      { text: "Front walkway" },
-      { text: "Free spot treatment" },
-      { text: "Same-day scheduling" },
+      { text: "Front walkway & entry path" },
+      { text: "Oil & mildew spot treatment" },
+      { text: "Same-day scheduling available" },
     ],
     cta: "Get Started",
     ctaHref: "#contact",
   },
   {
     name: "Residential Premium",
-    price: "$349",
+    price: "$549",
     priceLabel: "Starting at",
     popular: true,
     features: [
       { text: "Everything in Basic" },
-      { text: "Full house exterior wash" },
-      { text: "Deck/patio cleaning" },
-      { text: "Gutter brightening" },
-      { text: "Before & after photos" },
+      { text: "Full house exterior wash (1–2 stories)" },
+      { text: "Deck or patio cleaning" },
+      { text: "Fence & siding soft wash" },
+      { text: "Before & after photos included" },
     ],
     cta: "Get Started",
     ctaHref: "#contact",
   },
   {
     name: "Commercial",
-    price: "$599",
+    price: "$899",
     priceLabel: "Starting at",
     features: [
-      { text: "Up to 5,000 sq ft" },
-      { text: "Sidewalks & walkways" },
-      { text: "Building exterior" },
-      { text: "Parking area treatment" },
+      { text: "Up to 5,000 sq ft of flatwork" },
+      { text: "Sidewalks, storefronts & parking areas" },
+      { text: "Building exterior soft wash" },
       { text: "Monthly maintenance plans available" },
     ],
     cta: "Get Started",
@@ -62,8 +61,8 @@ const tiers: PricingTier[] = [
     price: "Custom",
     priceLabel: "Get a",
     features: [
-      { text: "Tailored to your community" },
-      { text: "Multi-building packages" },
+      { text: "Multi-building & community packages" },
+      { text: "Sidewalks, parking & common areas" },
       { text: "Scheduled maintenance programs" },
       { text: "Priority emergency service" },
       { text: "Dedicated account manager" },
@@ -114,7 +113,8 @@ export default function Pricing() {
             Pricing Packages
           </h2>
           <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto">
-            Transparent pricing for every need
+            Bay Area rates aligned with typical California pricing — most residential
+            jobs run $0.25–$0.80 per sq ft
           </p>
         </div>
 
@@ -141,11 +141,11 @@ export default function Pricing() {
                 </div>
               )}
 
-              <div className="mb-6">
+              <div className="mb-6 text-center">
                 <h3 className="text-lg font-semibold text-white">
                   {tier.name}
                 </h3>
-                <div className="mt-3 flex items-baseline gap-1">
+                <div className="mt-3 flex items-baseline justify-center gap-1">
                   <span className="text-sm text-zinc-400">
                     {tier.priceLabel}
                   </span>

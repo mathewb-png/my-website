@@ -72,7 +72,7 @@ const services = [
   {
     title: "Residential",
     description:
-      "Restore your home's beauty. Driveways, patios, decks, fences, siding, roofs, and gutters. We treat every home like our own.",
+      "Restore your home's beauty. Driveways, patios, decks, fences, and siding. We treat every home like our own.",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"

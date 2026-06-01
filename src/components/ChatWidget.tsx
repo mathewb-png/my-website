@@ -60,7 +60,7 @@ const RESPONSES: Record<string, string> = {
   "Service Areas":
     "We serve the Bay Area including residential, commercial, and HOA properties.",
   "Pricing Info":
-    "Our residential packages start at $149, commercial at $599. Visit our pricing section for full details!",
+    "Our residential packages start at $249, commercial at $899. Visit our pricing section for full details!",
 };
 
 const FALLBACK_RESPONSE =

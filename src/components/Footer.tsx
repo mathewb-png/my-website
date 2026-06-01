@@ -2,6 +2,8 @@ import Image from "next/image";
 
 const quickLinks = [
   { label: "Services", href: "#services" },
+  { label: "Process", href: "#process" },
+  { label: "Surfaces", href: "#surfaces" },
   { label: "Pricing", href: "#pricing" },
   { label: "AI Estimator", href: "#estimator" },
   { label: "Contact", href: "#contact" },
