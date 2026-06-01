@@ -214,11 +214,29 @@ export async function POST(req: NextRequest) {
         ? (error as { code: string }).code
         : null;
 
+    const openAiStatus =
+      error &&
+      typeof error === "object" &&
+      "status" in error &&
+      typeof (error as { status?: number }).status === "number"
+        ? (error as { status: number }).status
+        : null;
+
     if (openAiCode === "invalid_api_key") {
       return NextResponse.json(
         {
           error:
             "Quote service is not configured yet. Please call or use the contact form and we will send a quote shortly.",
+        },
+        { status: 503 }
+      );
+    }
+
+    if (openAiCode === "insufficient_quota" || openAiStatus === 429) {
+      return NextResponse.json(
+        {
+          error:
+            "Instant quotes are temporarily unavailable. Please use the contact form or call us and we will send a quote shortly.",
         },
         { status: 503 }
       );
