@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { prepareEstimateImage } from "@/lib/prepareEstimateImage";
 
 interface AnalysisResult {
   surface: string;
@@ -13,6 +14,7 @@ interface AnalysisResult {
   service: string;
   costLow: number;
   costHigh: number;
+  confidence?: "high" | "medium" | "low" | string;
   notes?: string;
 }
 
@@ -23,36 +25,6 @@ interface BookingForm {
   address: string;
   preferredDate: string;
   notes: string;
-}
-
-const SURFACES = [
-  "Concrete Driveway",
-  "Wooden Deck",
-  "Brick Patio",
-  "Vinyl Siding",
-  "Stone Walkway",
-  "Composite Deck",
-  "Stucco Wall",
-];
-
-const SERVICES = [
-  "Standard Power Wash",
-  "Deep Clean Power Wash",
-  "Soft Wash Treatment",
-  "Surface Restoration Wash",
-];
-
-const CONDITIONS: AnalysisResult["condition"][] = ["Light", "Moderate", "Heavy"];
-
-function generateAnalysis(): AnalysisResult {
-  const surface = SURFACES[Math.floor(Math.random() * SURFACES.length)];
-  const area = `~${Math.floor(Math.random() * 800 + 200)} sq ft`;
-  const condition = CONDITIONS[Math.floor(Math.random() * CONDITIONS.length)];
-  const service = SERVICES[Math.floor(Math.random() * SERVICES.length)];
-  const base = Math.floor(Math.random() * 150 + 100);
-  const costLow = base;
-  const costHigh = base + Math.floor(Math.random() * 150 + 75);
-  return { surface, area, condition, service, costLow, costHigh };
 }
 
 function conditionColor(condition: AnalysisResult["condition"]): string {
@@ -86,7 +58,7 @@ export default function AIEstimator() {
   }, []);
 
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
-  const [usingFallback, setUsingFallback] = useState(false);
+  const [analysisError, setAnalysisError] = useState("");
   const [referenceDimension, setReferenceDimension] = useState("");
   const [overrideSqFt, setOverrideSqFt] = useState("");
   const [reanalyzing, setReanalyzing] = useState(false);
@@ -109,8 +81,10 @@ export default function AIEstimator() {
         overrideSqFt: overrideSqFt ? Number(overrideSqFt) : undefined,
       }),
     });
-    if (!res.ok) throw new Error(`API error: ${res.status}`);
     const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || `Analysis failed (${res.status})`);
+    }
     return data.result as AnalysisResult;
   }, [referenceDimension, overrideSqFt]);
 
@@ -120,32 +94,33 @@ export default function AIEstimator() {
     }, 150);
   }, []);
 
-  const handleFile = useCallback((file: File) => {
+  const handleFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/")) return;
     setShowBooking(false);
     setBookingSuccess(false);
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const dataUrl = e.target?.result as string;
+    setAnalysisError("");
+    setResult(null);
+    setAnalyzing(true);
+    scrollToResults();
+
+    try {
+      const dataUrl = await prepareEstimateImage(file);
       setPreview(dataUrl);
       setImageDataUrl(dataUrl);
-      setResult(null);
-      setAnalyzing(true);
-      setUsingFallback(false);
+      const apiResult = await callEstimateAPI(dataUrl, details);
+      setResult(apiResult);
       scrollToResults();
-      try {
-        const apiResult = await callEstimateAPI(dataUrl, details);
-        setResult(apiResult);
-        scrollToResults();
-      } catch {
-        setUsingFallback(true);
-        setResult(generateAnalysis());
-        scrollToResults();
-      } finally {
-        setAnalyzing(false);
-      }
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      setPreview(null);
+      setImageDataUrl(null);
+      setAnalysisError(
+        error instanceof Error
+          ? error.message
+          : "Could not analyze this photo. Please try again with a clearer image."
+      );
+    } finally {
+      setAnalyzing(false);
+    }
   }, [callEstimateAPI, details, scrollToResults]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -169,17 +144,22 @@ export default function AIEstimator() {
   const openGallery = () => fileInputRef.current?.click();
 
   const handleReanalyze = useCallback(async () => {
-    if (!imageDataUrl || usingFallback) return;
+    if (!imageDataUrl) return;
     setReanalyzing(true);
+    setAnalysisError("");
     try {
       const apiResult = await callEstimateAPI(imageDataUrl, details);
       setResult(apiResult);
-    } catch {
-      // keep existing result on re-analyze failure
+    } catch (error) {
+      setAnalysisError(
+        error instanceof Error
+          ? error.message
+          : "Re-analysis failed. Please try again."
+      );
     } finally {
       setReanalyzing(false);
     }
-  }, [imageDataUrl, details, callEstimateAPI, usingFallback]);
+  }, [imageDataUrl, details, callEstimateAPI]);
 
   const handleBookingSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -232,14 +212,16 @@ export default function AIEstimator() {
           className="hidden"
         />
         <button
+          type="button"
           onClick={openCamera}
+          aria-label="Get instant quote from a property photo"
           className="flex items-center gap-2 rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--accent)] px-5 py-3 text-sm font-bold text-white shadow-lg shadow-[var(--primary-glow)] active:scale-95 transition-transform"
         >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-5 w-5">
             <path d="M12 9a3.75 3.75 0 100 7.5A3.75 3.75 0 0012 9z" />
             <path fillRule="evenodd" d="M9.344 3.071a49.52 49.52 0 015.312 0c.967.052 1.83.585 2.332 1.39l.821 1.317c.24.383.645.643 1.11.71.386.054.77.113 1.152.177 1.432.239 2.429 1.493 2.429 2.909V18a3 3 0 01-3 3H4.5a3 3 0 01-3-3V9.574c0-1.416.997-2.67 2.429-2.909.382-.064.766-.123 1.151-.178a1.56 1.56 0 001.11-.71l.822-1.315a2.942 2.942 0 012.332-1.39zM6.75 12.75a5.25 5.25 0 1110.5 0 5.25 5.25 0 01-10.5 0z" clipRule="evenodd" />
           </svg>
-          AI Estimate
+          Get Instant Quote
         </button>
       </div>
     )}
@@ -306,6 +288,44 @@ export default function AIEstimator() {
 
         {/* Upload + Results */}
         <div className="mx-auto max-w-3xl">
+          <div className="mb-6 rounded-2xl border border-blue-500/20 bg-blue-500/5 p-4 sm:p-5">
+            <p className="text-sm font-semibold text-[var(--text)]">
+              For the most accurate estimate
+            </p>
+            <ul className="mt-2 space-y-1 text-sm text-[var(--text-secondary)]">
+              <li>• Stand back so the full surface is visible</li>
+              <li>• Include a scale reference (garage door, car, or known width)</li>
+              <li>• Shoot in daylight, keep the camera level, avoid heavy glare</li>
+            </ul>
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label htmlFor="ref-dimension-top" className="mb-1 block text-xs font-medium text-[var(--text-muted)]">
+                  Reference measurement (optional)
+                </label>
+                <input
+                  id="ref-dimension-top"
+                  type="text"
+                  value={referenceDimension}
+                  onChange={(e) => setReferenceDimension(e.target.value)}
+                  placeholder="e.g., driveway is 20 ft wide"
+                  className="form-input text-xs"
+                />
+              </div>
+              <div>
+                <label htmlFor="override-sqft-top" className="mb-1 block text-xs font-medium text-[var(--text-muted)]">
+                  Known sq ft (optional)
+                </label>
+                <input
+                  id="override-sqft-top"
+                  type="number"
+                  value={overrideSqFt}
+                  onChange={(e) => setOverrideSqFt(e.target.value)}
+                  placeholder="e.g., 400"
+                  className="form-input text-xs"
+                />
+              </div>
+            </div>
+          </div>
           {/* Mobile: dual action buttons */}
           {isMobile && !preview && (
             <div className="mb-6 flex gap-3">
@@ -388,7 +408,9 @@ export default function AIEstimator() {
                     onClick={(e) => {
                       e.stopPropagation();
                       setPreview(null);
+                      setImageDataUrl(null);
                       setResult(null);
+                      setAnalysisError("");
                       setAnalyzing(false);
                     }}
                     className="mt-3 w-full rounded-xl border border-white/10 py-2.5 text-sm font-medium text-[var(--text-muted)] active:scale-95 transition-transform"
@@ -401,8 +423,19 @@ export default function AIEstimator() {
           </div>
 
           {/* Analysis panel */}
-          {(analyzing || result) && (
+          {(analyzing || result || analysisError) && (
             <div ref={resultRef} className="mt-6 animate-fade-in-up glass-card-elevated">
+              {analysisError && !analyzing && !result && (
+                <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-6 text-center">
+                  <p className="text-sm font-semibold text-red-300">Could not analyze photo</p>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
+                    {analysisError}
+                  </p>
+                  <p className="mt-3 text-xs text-[var(--text-muted)]">
+                    Tip: add a reference measurement below the upload area, or enter known sq ft before uploading.
+                  </p>
+                </div>
+              )}
               {analyzing ? (
                 <div className="flex flex-col items-center gap-4 py-8">
                   <div className="relative h-16 w-16">
@@ -424,9 +457,16 @@ export default function AIEstimator() {
                         <path fillRule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
                       </svg>
                     </div>
-                    <h3 className="text-xl font-bold text-[var(--text)]">
-                      AI Analysis Results
-                    </h3>
+                    <div>
+                      <h3 className="text-xl font-bold text-[var(--text)]">
+                        AI Analysis Results
+                      </h3>
+                      {result.confidence && (
+                        <p className="text-xs text-[var(--text-muted)]">
+                          Confidence: {result.confidence}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -544,7 +584,7 @@ export default function AIEstimator() {
                     <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div>
                         <label htmlFor="ref-dimension" className="mb-1 block text-xs font-medium text-[var(--text-muted)]">
-                          Reference measurement (optional)
+                          Reference measurement
                         </label>
                         <input
                           id="ref-dimension"
@@ -557,7 +597,7 @@ export default function AIEstimator() {
                       </div>
                       <div>
                         <label htmlFor="override-sqft" className="mb-1 block text-xs font-medium text-[var(--text-muted)]">
-                          Known sq ft (optional override)
+                          Known sq ft override
                         </label>
                         <input
                           id="override-sqft"
@@ -569,7 +609,7 @@ export default function AIEstimator() {
                         />
                       </div>
                     </div>
-                    {!usingFallback && imageDataUrl && (
+                    {imageDataUrl && (
                       <button
                         onClick={handleReanalyze}
                         disabled={reanalyzing}

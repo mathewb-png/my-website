@@ -1,67 +1,109 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import {
+  calculateEstimateCost,
+  normalizeCondition,
+  parseAreaSqFt,
+} from "@/lib/estimatePricing";
+import { normalizeEstimateImageDataUrl } from "@/lib/normalizeEstimateImage";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const SYSTEM_PROMPT = `You are an expert power washing estimator for "New Day Power Wash" in the Bay Area.
-Your PRIMARY job is to accurately measure the square footage of the surface in the photo, then price it.
+const ESTIMATE_MODEL = process.env.OPENAI_ESTIMATE_MODEL ?? "gpt-4o";
 
-## STEP 1: MEASURE THE AREA (most important)
+const SYSTEM_PROMPT = `You are a field estimator for New Day Power Wash (Bay Area, California).
+Your ONLY job is to read the photo and estimate the cleanable surface — NOT final pricing.
 
-Look for reference objects in the photo to calibrate scale:
-- Standard single garage door: 9 ft wide × 7 ft tall
-- Standard double garage door: 16 ft wide × 7 ft tall
-- Standard entry door: 3 ft wide × 6.8 ft tall
-- Sedan/SUV length: ~15 ft, width: ~6 ft
-- Pickup truck length: ~19 ft
-- Sidewalk panel: typically 4 ft wide × 5 ft long (20 sq ft per panel)
-- Standard concrete block/paver: 8 in × 16 in
-- Standard brick: 8 in × 4 in (face)
-- Person standing: ~5.5 ft tall reference
-- Trash can (wheeled): ~2 ft wide × 3.5 ft tall
-- Fence panel: typically 6 ft wide × 6 ft tall
-- Window: typically 3 ft × 4 ft
+## STEP 1: FIND SCALE REFERENCES
+Use visible objects to estimate length × width:
+- Single garage door: 9 ft × 7 ft
+- Double garage door: 16 ft × 7 ft
+- Entry door: 3 ft × 6.8 ft
+- Sedan length: ~15 ft, width: ~6 ft
+- SUV length: ~16–19 ft
+- Sidewalk panel: ~4 ft × 5 ft (20 sq ft each)
+- Standard paver: 8 in × 16 in
+- Fence panel: ~6 ft × 6 ft
+- Person height: ~5.5 ft
+- Wheeled trash can: ~2 ft × 3.5 ft
 
-Use these to estimate the LENGTH and WIDTH of the surface, then calculate area = L × W.
-Count repeating elements (sidewalk panels, bricks, pavers) to cross-check.
-If the customer provides a reference dimension, use it as your primary scale anchor.
+Count repeating panels/bricks/pavers to cross-check area.
+If the customer gives a reference measurement, treat it as the primary scale anchor.
 
-## STEP 2: ASSESS CONDITION
+## STEP 2: IDENTIFY SURFACE & CONDITION
+Surface examples: Concrete Driveway, Sidewalk, Brick Patio, Wooden Deck, Vinyl Siding, Stucco Wall, Stone Walkway, Composite Deck, Paver Patio.
 
-- Light: surface mostly clean, minor dust/light staining
-- Moderate: visible stains, some mold/mildew, discoloration
-- Heavy: thick grime, significant mold/algae, oil stains, years of buildup
+Condition:
+- Light: mostly clean, light dust or minor staining
+- Moderate: visible stains, mildew, or discoloration
+- Heavy: thick grime, algae, oil, or years of buildup
 
-## STEP 3: CALCULATE PRICE
+## STEP 3: RECOMMEND SERVICE
+- Hard flat surfaces (concrete, pavers, sidewalk): Standard Power Wash or Deep Clean Power Wash
+- Wood, vinyl, stucco, painted surfaces: Soft Wash Treatment
+- Very stained hard surfaces: Deep Clean Power Wash or Surface Restoration Wash
 
-Bay Area pricing:
-- Light cleaning: $0.15–0.25/sq ft
-- Moderate cleaning: $0.25–0.40/sq ft
-- Heavy/restoration: $0.40–0.65/sq ft
-- Minimum service charge: $150
-- Deck/fence staining add-on: +$2–4/sq ft
-- Second story surcharge: +25%
+We do NOT clean roofs or gutters. If the photo is mostly roof/gutter, say so in notes and estimate only the visible non-roof surface if possible.
 
-## RESPONSE FORMAT
-
-You MUST respond in valid JSON with this exact structure:
+## OUTPUT
+Return ONLY valid JSON with this exact shape:
 {
-  "surface": "detected surface type (e.g. Concrete Driveway, Wooden Deck, Brick Patio, Vinyl Siding, etc.)",
-  "area": "estimated area in sq ft (e.g. ~450 sq ft)",
-  "areaSqFt": number (numeric sq ft value, your best estimate),
-  "referenceUsed": "what reference object(s) you used for scale (e.g. 'double garage door = 16ft wide')",
-  "dimensions": "estimated L × W (e.g. ~40ft × 12ft)",
+  "surface": "string",
+  "area": "human-readable area like ~450 sq ft",
+  "areaSqFt": number,
+  "referenceUsed": "what you used for scale",
+  "dimensions": "estimated L × W",
   "condition": "Light" | "Moderate" | "Heavy",
-  "conditionNotes": "brief description of what you see",
-  "service": "recommended service type",
-  "costLow": number (low end estimate in USD),
-  "costHigh": number (high end estimate in USD),
-  "notes": "any additional notes or recommendations"
+  "conditionNotes": "brief visual notes",
+  "service": "recommended service name",
+  "confidence": "high" | "medium" | "low",
+  "notes": "uncertainty, obstructions, or photo quality issues"
 }
 
-Be precise. Show your reasoning through the referenceUsed and dimensions fields.`;
+Be conservative when scale is unclear — lower areaSqFt and set confidence to low rather than guessing high.`;
+
+interface VisionAnalysis {
+  surface?: string;
+  area?: string;
+  areaSqFt?: number;
+  referenceUsed?: string;
+  dimensions?: string;
+  condition?: string;
+  conditionNotes?: string;
+  service?: string;
+  confidence?: string;
+  notes?: string;
+}
+
+function buildUserMessage(
+  referenceDimension?: string,
+  overrideSqFt?: number,
+  details?: string
+): string {
+  const parts = [
+    "Analyze this property photo for a power washing estimate. Measure the primary cleanable surface area as accurately as possible.",
+    "If the full surface is not visible, estimate only the visible portion and explain that in notes.",
+    "If no reliable scale reference exists, set confidence to low.",
+  ];
+
+  if (referenceDimension) {
+    parts.push(
+      `Customer reference measurement (use as primary scale): "${referenceDimension}".`
+    );
+  }
+  if (overrideSqFt) {
+    parts.push(
+      `Customer says the area is ${overrideSqFt} sq ft — use that exact areaSqFt value.`
+    );
+  }
+  if (details) {
+    parts.push(`Additional customer context: "${details}".`);
+  }
+
+  return parts.join("\n");
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -76,28 +118,18 @@ export async function POST(req: NextRequest) {
     const { image, details, referenceDimension, overrideSqFt } = body;
 
     if (!image) {
-      return NextResponse.json(
-        { error: "No image provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "No image provided" }, { status: 400 });
     }
 
-    const parts: string[] = [
-      "Analyze this property photo for a power washing estimate. Measure the surface area as accurately as possible.",
-    ];
-    if (referenceDimension) {
-      parts.push(`The customer provided a reference measurement: "${referenceDimension}". Use this as your primary scale anchor.`);
-    }
-    if (overrideSqFt) {
-      parts.push(`The customer says the area is ${overrideSqFt} sq ft. Use this value for the area instead of estimating.`);
-    }
-    if (details) {
-      parts.push(`Additional context from the customer: "${details}"`);
-    }
-    const userMessage = parts.join(" ");
+    const normalizedImage = await normalizeEstimateImageDataUrl(image);
+    const userMessage = buildUserMessage(
+      referenceDimension,
+      overrideSqFt ? Number(overrideSqFt) : undefined,
+      details
+    );
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: ESTIMATE_MODEL,
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {
@@ -107,28 +139,68 @@ export async function POST(req: NextRequest) {
             {
               type: "image_url",
               image_url: {
-                url: image.startsWith("data:") ? image : `data:image/jpeg;base64,${image}`,
+                url: normalizedImage,
                 detail: "high",
               },
             },
           ],
         },
       ],
-      max_tokens: 800,
-      temperature: 0.2,
+      max_tokens: 700,
+      temperature: 0.1,
+      response_format: { type: "json_object" },
     });
 
-    const text = response.choices[0]?.message?.content || "";
+    const text = response.choices[0]?.message?.content;
+    if (!text) {
+      return NextResponse.json(
+        { error: "Empty response from vision model" },
+        { status: 500 }
+      );
+    }
 
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
+    let analysis: VisionAnalysis;
+    try {
+      analysis = JSON.parse(text) as VisionAnalysis;
+    } catch {
       return NextResponse.json(
         { error: "Failed to parse AI response" },
         { status: 500 }
       );
     }
 
-    const result = JSON.parse(jsonMatch[0]);
+    const condition = normalizeCondition(analysis.condition);
+    const areaSqFt =
+      overrideSqFt && Number(overrideSqFt) > 0
+        ? Math.round(Number(overrideSqFt))
+        : parseAreaSqFt(analysis.areaSqFt, analysis.area);
+
+    if (!areaSqFt) {
+      return NextResponse.json(
+        {
+          error:
+            "Could not estimate area from this photo. Try adding a reference measurement (e.g. driveway is 20 ft wide) or enter known sq ft.",
+        },
+        { status: 422 }
+      );
+    }
+
+    const { costLow, costHigh } = calculateEstimateCost(areaSqFt, condition);
+
+    const result = {
+      surface: analysis.surface?.trim() || "Unknown Surface",
+      area: analysis.area?.trim() || `~${areaSqFt.toLocaleString()} sq ft`,
+      areaSqFt,
+      referenceUsed: analysis.referenceUsed?.trim() || undefined,
+      dimensions: analysis.dimensions?.trim() || undefined,
+      condition,
+      conditionNotes: analysis.conditionNotes?.trim() || undefined,
+      service: analysis.service?.trim() || "Standard Power Wash",
+      costLow,
+      costHigh,
+      confidence: analysis.confidence || "medium",
+      notes: analysis.notes?.trim() || undefined,
+    };
 
     return NextResponse.json({ result });
   } catch (error: unknown) {

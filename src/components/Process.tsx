@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 
 const OVAL_PATH =
   "M 15,15 H 85 Q 99,15 99,30 V 70 Q 100,85 85,85 H 15 Q 1,85 0,70 V 30 Q 1,15 15,15 Z";
@@ -137,6 +137,94 @@ const circlePositions = [
   { x: "1%", y: "50%" },
 ];
 
+const MOBILE_STEP_MS = 6000;
+
+function ProcessMobileCarousel() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const prefersReducedMotion = useRef(false);
+
+  const clearTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
+
+  const startTimer = useCallback(() => {
+    clearTimer();
+    if (prefersReducedMotion.current) return;
+
+    timerRef.current = setInterval(() => {
+      setActiveIndex((index) => (index + 1) % steps.length);
+    }, MOBILE_STEP_MS);
+  }, [clearTimer]);
+
+  const goToStep = useCallback(
+    (index: number) => {
+      setActiveIndex(index);
+      startTimer();
+    },
+    [startTimer]
+  );
+
+  const goNext = useCallback(() => {
+    setActiveIndex((index) => (index + 1) % steps.length);
+    startTimer();
+  }, [startTimer]);
+
+  useEffect(() => {
+    prefersReducedMotion.current = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    const mq = window.matchMedia("(max-width: 767px)");
+    if (!mq.matches) return;
+
+    startTimer();
+    return clearTimer;
+  }, [clearTimer, startTimer]);
+
+  const activeStep = steps[activeIndex];
+
+  return (
+    <div className="process-mobile md:hidden">
+      <button
+        type="button"
+        className="process-mobile-card process-mobile-card--interactive"
+        onClick={goNext}
+        aria-label={`Step ${activeIndex + 1}: ${activeStep.title}. Tap for next step.`}
+      >
+        <div className="process-mobile-icon">{activeStep.icon}</div>
+        <div className="text-left">
+          <span className="process-mobile-step">
+            Step {activeIndex + 1} of {steps.length}
+          </span>
+          <h3 className="process-mobile-title">{activeStep.title}</h3>
+          <p className="process-mobile-text">{activeStep.description}</p>
+          <p className="process-mobile-hint">Tap for next step</p>
+        </div>
+      </button>
+
+      <div className="process-mobile-dots" role="tablist" aria-label="Process steps">
+        {steps.map((step, index) => (
+          <button
+            key={`dot-${step.title}`}
+            type="button"
+            role="tab"
+            aria-selected={index === activeIndex}
+            aria-label={`Go to step ${index + 1}: ${step.title}`}
+            className={`process-mobile-dot${
+              index === activeIndex ? " is-active" : ""
+            }`}
+            onClick={() => goToStep(index)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Process() {
   return (
     <section
@@ -209,34 +297,7 @@ export default function Process() {
           ))}
         </div>
 
-        {/* Mobile auto-cycling cards */}
-        <div className="process-mobile md:hidden">
-          {steps.map((step, index) => (
-            <article
-              key={`mobile-${step.title}`}
-              className="process-mobile-card"
-              style={{ "--stop-index": index } as CSSProperties}
-            >
-              <div className="process-mobile-icon">{step.icon}</div>
-              <div>
-                <span className="process-mobile-step">
-                  Step {index + 1} of {steps.length}
-                </span>
-                <h3 className="process-mobile-title">{step.title}</h3>
-                <p className="process-mobile-text">{step.description}</p>
-              </div>
-            </article>
-          ))}
-          <div className="process-mobile-dots" aria-hidden="true">
-            {steps.map((step, index) => (
-              <span
-                key={`dot-${step.title}`}
-                className="process-mobile-dot"
-                style={{ "--stop-index": index } as CSSProperties}
-              />
-            ))}
-          </div>
-        </div>
+        <ProcessMobileCarousel />
       </div>
     </section>
   );

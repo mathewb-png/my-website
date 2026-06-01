@@ -713,25 +713,35 @@ body {
   }
 }
 
-/* Mobile process cards */
+/* Mobile process cards — tap or dot to navigate; auto-advances via JS */
 .process-mobile {
-  --animation-duration: 6s;
   position: relative;
   min-height: 14rem;
 }
 
 .process-mobile-card {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  inset: auto;
   display: flex;
   gap: 1rem;
+  width: 100%;
   padding: 1.25rem;
   border-radius: 1rem;
   border: 1px solid rgba(59, 130, 246, 0.2);
   background: rgba(17, 24, 39, 0.95);
-  opacity: 0;
-  animation: processMobileCard var(--animation-duration) linear infinite;
-  animation-delay: calc((var(--animation-duration) * var(--stop-index) / 6) - 250ms);
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+
+.process-mobile-card--interactive:active {
+  transform: scale(0.99);
+  border-color: rgba(59, 130, 246, 0.45);
+  box-shadow: 0 0 24px rgba(59, 130, 246, 0.15);
 }
 
 .process-mobile-icon {
@@ -775,9 +785,13 @@ body {
   color: #9ca3af;
 }
 
-@keyframes processMobileCard {
-  4%, 14% { opacity: 1; translate: 0 0; }
-  16%, 100% { opacity: 0; translate: 0 8px; }
+.process-mobile-hint {
+  margin-top: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(96, 165, 250, 0.75);
 }
 
 .process-mobile-dots {
@@ -792,49 +806,41 @@ body {
 .process-mobile-dot {
   width: 0.5rem;
   height: 0.5rem;
+  padding: 0;
+  border: none;
   border-radius: 9999px;
   background: rgba(75, 85, 99, 0.8);
-  animation: processMobileDot var(--animation-duration) linear infinite;
-  animation-delay: calc((var(--animation-duration) * var(--stop-index) / 6) - 250ms);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    scale 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
-@keyframes processMobileDot {
-  4%, 14% {
-    background: #3b82f6;
-    box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
-    scale: 1.2;
-  }
-  16%, 100% {
-    background: rgba(75, 85, 99, 0.8);
-    box-shadow: none;
-    scale: 1;
-  }
+.process-mobile-dot.is-active {
+  background: #3b82f6;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+  scale: 1.2;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .process-path-line,
   .process-node,
-  .process-detail-card,
-  .process-mobile-card,
-  .process-mobile-dot {
+  .process-detail-card {
     animation: none;
   }
 
-  .process-detail-card:first-of-type,
-  .process-mobile-card:first-of-type {
+  .process-detail-card:first-of-type {
     opacity: 1;
     position: relative;
   }
 
-  .process-detail-card:not(:first-of-type),
-  .process-mobile-card:not(:first-of-type) {
+  .process-detail-card:not(:first-of-type) {
     display: none;
   }
 
-  .process-mobile {
-    min-height: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  .process-mobile-hint {
+    display: none;
   }
 }
