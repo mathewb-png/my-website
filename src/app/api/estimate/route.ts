@@ -205,7 +205,30 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ result });
   } catch (error: unknown) {
     console.error("Estimate API error:", error);
+
+    const openAiCode =
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      typeof (error as { code?: string }).code === "string"
+        ? (error as { code: string }).code
+        : null;
+
+    if (openAiCode === "invalid_api_key") {
+      return NextResponse.json(
+        {
+          error:
+            "Quote service is not configured yet. Please call or use the contact form and we will send a quote shortly.",
+        },
+        { status: 503 }
+      );
+    }
+
     const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const safeMessage = message.includes("API key")
+      ? "Quote service is temporarily unavailable. Please try again later or contact us for a manual quote."
+      : message;
+
+    return NextResponse.json({ error: safeMessage }, { status: 500 });
   }
 }
