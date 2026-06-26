@@ -6,7 +6,7 @@ import Process from "@/components/Process";
 import SurfaceGuide from "@/components/SurfaceGuide";
 import Pricing from "@/components/Pricing";
 import AIEstimator from "@/components/AIEstimator";
-import ContactForm from "@/components/ContactForm";
+import BookingSection from "@/components/BookingSection";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/components/ChatWidget";
 import LocalBusinessJsonLd from "@/components/LocalBusinessJsonLd";
@@ -24,7 +24,7 @@ export default function Home() {
         <SurfaceGuide />
         <Pricing />
         <AIEstimator />
-        <ContactForm />
+        <BookingSection />
       </main>
       <Footer />
       <ChatWidget />

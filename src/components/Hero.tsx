@@ -95,14 +95,11 @@ export default function Hero() {
             Bay Area Power Washing
           </span>
           <span className="mt-1 block text-2xl font-bold leading-snug text-[var(--primary)] sm:text-3xl md:text-4xl lg:text-5xl">
-            Livermore, Dublin, Pleasanton &amp;{" "}
-            <span className="whitespace-nowrap">Tri-Valley</span>
+            <span className="whitespace-nowrap">Tri-Valley</span> Residential Experts
           </span>
         </h1>
         <p className="mx-auto mb-10 max-w-2xl text-base font-normal leading-relaxed text-gray-400 sm:text-lg md:text-xl">
-          Residential-first power washing for homes in Livermore, Dublin, Pleasanton,
-          San Ramon, Danville, and the greater Bay Area, plus HOA and property
-          management when you need them. Get an instant photo quote in seconds.
+          Professional power washing for homes across Livermore, Dublin, Pleasanton, San Ramon, and Danville.
         </p>
 
         {/* Liquid button (CodePen fliseno1k/WNboLBy) */}
