@@ -2,10 +2,11 @@ import Image from "next/image";
 
 const quickLinks = [
   { label: "Services", href: "#services" },
+  { label: "Service Area", href: "#service-area" },
   { label: "Process", href: "#process" },
   { label: "Surfaces", href: "#surfaces" },
   { label: "Pricing", href: "#pricing" },
-  { label: "AI Estimator", href: "#estimator" },
+  { label: "Get Quote", href: "#estimator" },
   { label: "Contact", href: "#contact" },
 ];
 
@@ -24,8 +25,9 @@ export default function Footer() {
               className="logo-img mb-4 h-9 w-auto max-w-[10rem] sm:h-11 sm:max-w-none"
             />
             <p className="max-w-xs text-sm leading-relaxed text-gray-400">
-              Professional power washing services that make your property look
-              brand new. Trusted by HOAs, commercial, and residential clients.
+              Residential-first power washing across Livermore, Dublin, Pleasanton,
+              San Ramon, Danville, and the Tri-Valley. We also serve HOAs and
+              property management clients.
             </p>
             <div className="mt-6 flex gap-3">
               {["facebook", "instagram", "twitter", "youtube"].map((social) => (
@@ -77,8 +79,8 @@ export default function Footer() {
                   <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
                   <polyline points="22,6 12,13 2,6" />
                 </svg>
-                <a href="mailto:matc.byrne@gmail.com" className="transition-colors hover:text-white">
-                  matc.byrne@gmail.com
+                <a href="mailto:info@newdaypowerwash.com" className="transition-colors hover:text-white">
+                  info@newdaypowerwash.com
                 </a>
               </li>
               <li className="flex items-start gap-2">
@@ -86,7 +88,9 @@ export default function Footer() {
                   <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                   <circle cx="12" cy="10" r="3" />
                 </svg>
-                <span>Serving the Bay Area</span>
+                <span>
+                  Livermore, Dublin, Pleasanton, San Ramon, Danville &amp; Bay Area
+                </span>
               </li>
             </ul>
           </div>

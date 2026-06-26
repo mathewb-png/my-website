@@ -1,16 +1,16 @@
 export type EstimateCondition = "Light" | "Moderate" | "Heavy";
 
-/** Bay Area residential rates aligned with site pricing ($0.25–$0.80 / sq ft). */
+/** Competitive Bay Area rates matching site pricing ($0.15–$0.40 / sq ft). */
 const RATE_BY_CONDITION: Record<
   EstimateCondition,
   { low: number; high: number }
 > = {
-  Light: { low: 0.25, high: 0.4 },
-  Moderate: { low: 0.4, high: 0.55 },
-  Heavy: { low: 0.55, high: 0.8 },
+  Light: { low: 0.15, high: 0.25 },
+  Moderate: { low: 0.2, high: 0.35 },
+  Heavy: { low: 0.3, high: 0.4 },
 };
 
-export const MINIMUM_SERVICE_CHARGE = 249;
+export const MINIMUM_SERVICE_CHARGE = 149;
 
 export function calculateEstimateCost(
   areaSqFt: number,

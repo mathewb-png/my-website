@@ -58,9 +58,9 @@ const FORM_TRIGGERS = ["Get a Quote", "Schedule Service"];
 
 const RESPONSES: Record<string, string> = {
   "Service Areas":
-    "We serve the Bay Area including residential, commercial, and HOA properties.",
+    "We're residential-first: home driveways, patios, and siding across the Bay Area, plus HOA and property management clients.",
   "Pricing Info":
-    "Our residential packages start at $249, commercial at $899. Visit our pricing section for full details!",
+    "Our residential packages start at $249. HOA and property management quotes are custom. Visit our pricing section for full details!",
 };
 
 const FALLBACK_RESPONSE =
@@ -125,7 +125,6 @@ function ChatInlineForm({
         <option value="">Property type</option>
         <option value="Residential">Residential</option>
         <option value="HOA/Community">HOA / Community</option>
-        <option value="Commercial">Commercial</option>
         <option value="Leasing Office">Leasing Office</option>
         <option value="Other">Other</option>
       </select>
@@ -327,6 +326,20 @@ export default function ChatWidget() {
       addBotMessage(
         `Thanks ${data.name.split(" ")[0]}! We've received your request and will get back to you within 24 hours. You can also reach us at (925) 518-4931.`
       );
+
+      fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_key: "cdb4f08d-26f3-46ff-aca0-9e35349d14cd",
+          subject: `Chat Lead — ${data.propertyType || "General"} — ${data.name}`,
+          from_name: data.name,
+          email: data.email,
+          phone: data.phone,
+          property_type: data.propertyType,
+          message: data.message,
+        }),
+      }).catch(() => {});
     },
     [addBotMessage]
   );

@@ -2,6 +2,27 @@
 
 const services = [
   {
+    title: "Residential",
+    description:
+      "Our primary focus. Restore your home's curb appeal with driveway, patio, deck, fence, and siding cleaning. Every home treated like our own.",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-8 w-8"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={1.5}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V10"
+        />
+      </svg>
+    ),
+  },
+  {
     title: "HOA & Community Properties",
     description:
       "Keep your community pristine. We handle sidewalks, building exteriors, parking structures, pool decks, and common areas. Regular maintenance contracts available.",
@@ -48,48 +69,6 @@ const services = [
       </svg>
     ),
   },
-  {
-    title: "Commercial & Corporate",
-    description:
-      "Maintain your professional image. We clean storefronts, warehouses, loading docks, drive-throughs, heavy equipment, and large sidewalk areas for businesses.",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-8 w-8"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.5}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M3 21h18M3 21V8l9-5 9 5v13M7 21v-3a1 1 0 011-1h2a1 1 0 011 1v3M13 21v-3a1 1 0 011-1h2a1 1 0 011 1v3M7 11h.01M11 11h.01M13 11h.01M17 11h.01M7 15h.01M17 15h.01"
-        />
-      </svg>
-    ),
-  },
-  {
-    title: "Residential",
-    description:
-      "Restore your home's beauty. Driveways, patios, decks, fences, and siding. We treat every home like our own.",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        className="h-8 w-8"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth={1.5}
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V10"
-        />
-      </svg>
-    ),
-  },
 ];
 
 export default function Services() {
@@ -105,11 +84,12 @@ export default function Services() {
             Our Services
           </h2>
           <p className="mt-4 text-lg text-zinc-400 max-w-2xl mx-auto">
-            Professional power washing for every property type
+            Residential-first power washing for homes, plus HOA and property
+            management services across the Tri-Valley and East Bay
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((service) => (
             <div
               key={service.title}

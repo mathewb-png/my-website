@@ -167,24 +167,32 @@ export default function AIEstimator() {
     setBookingLoading(true);
     setBookingError("");
     try {
-      const res = await fetch("/api/book", {
+      const estimateDetails = [
+        `Surface: ${result.surface}`,
+        `Area: ${result.area}${result.dimensions ? ` (${result.dimensions})` : ""}`,
+        `Condition: ${result.condition}`,
+        `Service: ${result.service}`,
+        `Est. Cost: $${adjustedCost(result.costLow)} – $${adjustedCost(result.costHigh)}`,
+      ].join("\n");
+
+      const res = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...bookingForm,
-          estimate: {
-            surface: result.surface,
-            area: result.area,
-            areaSqFt: result.areaSqFt,
-            dimensions: result.dimensions,
-            condition: result.condition,
-            service: result.service,
-            costLow: adjustedCost(result.costLow),
-            costHigh: adjustedCost(result.costHigh),
-          },
+          access_key: "cdb4f08d-26f3-46ff-aca0-9e35349d14cd",
+          subject: `Booking Request — ${result.surface} — ${bookingForm.name}`,
+          from_name: bookingForm.name,
+          name: bookingForm.name,
+          email: bookingForm.email,
+          phone: bookingForm.phone,
+          address: bookingForm.address,
+          preferred_date: bookingForm.preferredDate,
+          notes: bookingForm.notes,
+          estimate: estimateDetails,
         }),
       });
-      if (!res.ok) throw new Error("Failed to submit");
+      const data = await res.json();
+      if (!data.success) throw new Error("Failed to submit");
       setBookingSuccess(true);
       setShowBooking(false);
     } catch {

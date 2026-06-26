@@ -92,15 +92,17 @@ export default function Hero() {
       <div className="relative z-20 mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
         <h1 id="hero-title" className="mb-6">
           <span className="block text-4xl font-extrabold leading-tight tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
-            Professional Power Washing
+            Bay Area Power Washing
           </span>
           <span className="mt-1 block text-2xl font-bold leading-snug text-[var(--primary)] sm:text-3xl md:text-4xl lg:text-5xl">
-            That Makes Everything Look New Again
+            Livermore, Dublin, Pleasanton &amp;{" "}
+            <span className="whitespace-nowrap">Tri-Valley</span>
           </span>
         </h1>
         <p className="mx-auto mb-10 max-w-2xl text-base font-normal leading-relaxed text-gray-400 sm:text-lg md:text-xl">
-          Serving HOAs, commercial properties, leasing offices, and residential
-          homes. Get a free AI-powered estimate in seconds.
+          Residential-first power washing for homes in Livermore, Dublin, Pleasanton,
+          San Ramon, Danville, and the greater Bay Area, plus HOA and property
+          management when you need them. Get an instant photo quote in seconds.
         </p>
 
         {/* Liquid button (CodePen fliseno1k/WNboLBy) */}

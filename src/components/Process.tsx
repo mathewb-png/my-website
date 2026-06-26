@@ -137,9 +137,10 @@ const circlePositions = [
   { x: "1%", y: "50%" },
 ];
 
-const MOBILE_STEP_MS = 6000;
+const MOBILE_STEP_MS = 8000;
+const DESKTOP_STEP_MS = 8000;
 
-function ProcessMobileCarousel() {
+function useProcessCarousel(intervalMs: number, mediaQuery: string) {
   const [activeIndex, setActiveIndex] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const prefersReducedMotion = useRef(false);
@@ -157,8 +158,8 @@ function ProcessMobileCarousel() {
 
     timerRef.current = setInterval(() => {
       setActiveIndex((index) => (index + 1) % steps.length);
-    }, MOBILE_STEP_MS);
-  }, [clearTimer]);
+    }, intervalMs);
+  }, [clearTimer, intervalMs]);
 
   const goToStep = useCallback(
     (index: number) => {
@@ -178,14 +179,33 @@ function ProcessMobileCarousel() {
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
-    const mq = window.matchMedia("(max-width: 767px)");
-    if (!mq.matches) return;
+    const mq = window.matchMedia(mediaQuery);
+    const syncTimer = () => {
+      if (mq.matches) startTimer();
+      else clearTimer();
+    };
 
-    startTimer();
-    return clearTimer;
-  }, [clearTimer, startTimer]);
+    syncTimer();
+    mq.addEventListener("change", syncTimer);
+    return () => {
+      mq.removeEventListener("change", syncTimer);
+      clearTimer();
+    };
+  }, [clearTimer, mediaQuery, startTimer]);
 
-  const activeStep = steps[activeIndex];
+  return {
+    activeIndex,
+    activeStep: steps[activeIndex],
+    goToStep,
+    goNext,
+  };
+}
+
+function ProcessMobileCarousel() {
+  const { activeIndex, activeStep, goToStep, goNext } = useProcessCarousel(
+    MOBILE_STEP_MS,
+    "(max-width: 767px)"
+  );
 
   return (
     <div className="process-mobile md:hidden">
@@ -225,6 +245,62 @@ function ProcessMobileCarousel() {
   );
 }
 
+function ProcessDesktopDiagram() {
+  const { activeIndex, activeStep, goToStep } = useProcessCarousel(
+    DESKTOP_STEP_MS,
+    "(min-width: 768px)"
+  );
+
+  return (
+    <div
+      className="process-diagram process-diagram--interactive mx-auto hidden max-w-3xl md:block"
+      role="tablist"
+      aria-label="Process steps"
+    >
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        <path className="process-oval" d={OVAL_PATH} />
+        <path className="process-path-line" d={OVAL_PATH} />
+      </svg>
+
+      {steps.map((step, index) => (
+        <button
+          key={step.title}
+          type="button"
+          role="tab"
+          aria-selected={index === activeIndex}
+          aria-label={`Step ${index + 1}: ${step.title}`}
+          className={`process-node process-node--interactive${
+            index === activeIndex ? " is-active" : ""
+          }`}
+          style={
+            {
+              "--circle-x": circlePositions[index].x,
+              "--circle-y": circlePositions[index].y,
+            } as CSSProperties
+          }
+          onClick={() => goToStep(index)}
+        >
+          <div className="process-node-icon">{step.icon}</div>
+          <span className="process-node-label">{step.shortLabel}</span>
+        </button>
+      ))}
+
+      <div
+        key={activeIndex}
+        className="process-detail-card process-detail-card--interactive is-active animate-fade-in-up"
+        role="tabpanel"
+        aria-live="polite"
+      >
+        <span className="process-detail-step">
+          Step {activeIndex + 1} of {steps.length}
+        </span>
+        <h3 className="process-detail-title">{activeStep.title}</h3>
+        <p className="process-detail-text">{activeStep.description}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function Process() {
   return (
     <section
@@ -258,44 +334,7 @@ export default function Process() {
           </p>
         </div>
 
-        {/* Desktop / tablet animated diagram */}
-        <div className="process-diagram mx-auto hidden max-w-3xl md:block">
-          <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-            <path className="process-oval" d={OVAL_PATH} />
-            <path className="process-path-line" d={OVAL_PATH} />
-          </svg>
-
-          {steps.map((step, index) => (
-            <div
-              key={step.title}
-              className="process-node"
-              style={
-                {
-                  "--circle-x": circlePositions[index].x,
-                  "--circle-y": circlePositions[index].y,
-                  "--stop-index": index,
-                } as CSSProperties
-              }
-            >
-              <div className="process-node-icon">{step.icon}</div>
-              <span className="process-node-label">{step.shortLabel}</span>
-            </div>
-          ))}
-
-          {steps.map((step, index) => (
-            <div
-              key={`card-${step.title}`}
-              className="process-detail-card"
-              style={{ "--stop-index": index } as CSSProperties}
-            >
-              <span className="process-detail-step">
-                Step {index + 1} of {steps.length}
-              </span>
-              <h3 className="process-detail-title">{step.title}</h3>
-              <p className="process-detail-text">{step.description}</p>
-            </div>
-          ))}
-        </div>
+        <ProcessDesktopDiagram />
 
         <ProcessMobileCarousel />
       </div>

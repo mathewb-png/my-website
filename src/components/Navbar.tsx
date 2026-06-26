@@ -5,10 +5,11 @@ import Image from "next/image";
 
 const navLinks = [
   { label: "Services", href: "#services" },
+  { label: "Areas", href: "#service-area" },
   { label: "Process", href: "#process" },
   { label: "Surfaces", href: "#surfaces" },
   { label: "Pricing", href: "#pricing" },
-  { label: "AI Estimator", href: "#estimator" },
+  { label: "Get Quote", href: "#estimator" },
   { label: "Contact", href: "#contact" },
 ];
 

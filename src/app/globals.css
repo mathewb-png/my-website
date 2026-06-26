@@ -453,77 +453,37 @@ body {
   animation: progressBar 2.5s ease-in-out forwards;
 }
 
-/* ─── Pricing Bubbles Background ─── */
+/* ─── Pricing section ─── */
 
-.pricing-bubbles {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  overflow: hidden;
-  top: 0;
-  left: 0;
-  pointer-events: none;
+.pricing-card {
+  backdrop-filter: blur(12px);
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
 }
 
-.pricing-bubble {
-  position: absolute;
-  bottom: -100px;
-  border-radius: 50%;
-  animation: pricing-float 10s infinite ease-in;
+.pricing-card:not(.pricing-card--popular):hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
 }
 
-.pricing-bubble:nth-child(odd) {
-  background: var(--accent);
-}
-.pricing-bubble:nth-child(even) {
-  background: var(--primary);
-}
-.pricing-bubble:nth-child(3n) {
-  background: rgba(59, 130, 246, 0.8);
-}
-.pricing-bubble:nth-child(5n) {
-  background: rgba(96, 165, 250, 0.7);
+.pricing-card--popular {
+  background-image: linear-gradient(
+    180deg,
+    rgba(30, 144, 255, 0.08) 0%,
+    rgba(10, 10, 18, 0.92) 28%
+  );
 }
 
-.pricing-bubble-1  { width: 30px;  height: 30px;  left: 5%;   animation-duration: 8s;  }
-.pricing-bubble-2  { width: 20px;  height: 20px;  left: 15%;  animation-duration: 5s;  animation-delay: 1s; }
-.pricing-bubble-3  { width: 50px;  height: 50px;  left: 25%;  animation-duration: 10s; animation-delay: 2s; }
-.pricing-bubble-4  { width: 80px;  height: 80px;  left: 40%;  animation-duration: 7s;  animation-delay: 0s; }
-.pricing-bubble-5  { width: 35px;  height: 35px;  left: 50%;  animation-duration: 6s;  animation-delay: 1s; }
-.pricing-bubble-6  { width: 45px;  height: 45px;  left: 60%;  animation-duration: 8s;  animation-delay: 3s; }
-.pricing-bubble-7  { width: 25px;  height: 25px;  left: 70%;  animation-duration: 7s;  animation-delay: 2s; }
-.pricing-bubble-8  { width: 80px;  height: 80px;  left: 80%;  animation-duration: 6s;  animation-delay: 1s; }
-.pricing-bubble-9  { width: 15px;  height: 15px;  left: 68%;  animation-duration: 9s;  animation-delay: 0s; }
-.pricing-bubble-10 { width: 50px;  height: 50px;  left: 88%;  animation-duration: 8s;  animation-delay: 5s; }
-.pricing-bubble-11 { width: 35px;  height: 35px;  left: 18%;  animation-duration: 3s;  animation-delay: 1s; }
-.pricing-bubble-12 { width: 40px;  height: 40px;  left: 8%;   animation-duration: 6s;  animation-delay: 1s; }
-.pricing-bubble-13 { width: 60px;  height: 60px;  left: 33%;  animation-duration: 8s;  animation-delay: 4s; }
-.pricing-bubble-14 { width: 22px;  height: 22px;  left: 92%;  animation-duration: 7s;  animation-delay: 2s; }
-.pricing-bubble-15 { width: 55px;  height: 55px;  left: 48%;  animation-duration: 11s; animation-delay: 3s; }
-
-@keyframes pricing-float {
-  0% {
-    bottom: -100px;
-    transform: translateX(0) scale(1);
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.25;
-  }
-  50% {
-    transform: translateX(80px) scale(1.1);
-    opacity: 0.2;
-  }
-  90% {
-    opacity: 0.1;
-  }
-  100% {
-    bottom: 110%;
-    transform: translateX(-60px) scale(0.8);
-    opacity: 0;
-  }
+.pricing-card--commercial {
+  background-image: linear-gradient(
+    135deg,
+    rgba(30, 144, 255, 0.05) 0%,
+    rgba(10, 10, 18, 0.9) 45%
+  );
 }
+
 
 /* Hide scrollbar for horizontal scroll containers */
 .scrollbar-hide {
@@ -543,7 +503,7 @@ body {
 /* ─── Process section ─── */
 
 .process-diagram {
-  --animation-duration: 6s;
+  --animation-duration: 36s;
   --circle-bg-clr: rgba(17, 24, 39, 0.95);
   --ellipse-perimeter: 314;
   --line-length: 6;
@@ -632,17 +592,17 @@ body {
 }
 
 @keyframes processPulse {
-  5%, 13% {
+  3%, 18% {
     scale: 1.12;
     border-color: #3b82f6;
     background-color: rgba(30, 64, 175, 0.35);
     box-shadow: 0 0 24px rgba(59, 130, 246, 0.35);
     --icon-scale: 0.72;
   }
-  5%, 13% {
+  3%, 18% {
     color: #dbeafe;
   }
-  15% {
+  21% {
     scale: 1;
     border-color: rgba(55, 65, 81, 0.9);
     background-color: var(--circle-bg-clr);
@@ -653,8 +613,8 @@ body {
 }
 
 @keyframes processLabelPulse {
-  5%, 13% { color: #fff; }
-  15%, 100% { color: #9ca3af; }
+  3%, 18% { color: #fff; }
+  21%, 100% { color: #9ca3af; }
 }
 
 .process-detail-card {
@@ -701,16 +661,68 @@ body {
 }
 
 @keyframes processDetailCard {
-  4%, 14% {
+  3%, 18% {
     opacity: 1;
     translate: -50% -50%;
     scale: 1;
   }
-  16%, 100% {
+  21%, 100% {
     opacity: 0;
     translate: -50% calc(-50% + 6px);
     scale: 0.97;
   }
+}
+
+.process-diagram--interactive .process-path-line {
+  animation: processMoveLine var(--animation-duration) linear infinite;
+  opacity: 0.85;
+}
+
+.process-diagram--interactive .process-node--interactive {
+  animation: none;
+  padding: 0;
+  appearance: none;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    scale 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.process-diagram--interactive .process-node--interactive .process-node-label {
+  animation: none;
+  pointer-events: none;
+}
+
+.process-diagram--interactive .process-node--interactive:hover {
+  border-color: rgba(59, 130, 246, 0.55);
+}
+
+.process-diagram--interactive .process-node--interactive.is-active {
+  scale: 1.12;
+  border-color: #3b82f6;
+  background-color: rgba(30, 64, 175, 0.35);
+  box-shadow: 0 0 24px rgba(59, 130, 246, 0.35);
+  color: #dbeafe;
+}
+
+.process-diagram--interactive .process-node--interactive.is-active .process-node-icon svg {
+  scale: 0.72;
+}
+
+.process-diagram--interactive .process-node--interactive.is-active .process-node-label {
+  color: #fff;
+}
+
+.process-diagram--interactive .process-detail-card--interactive {
+  animation: none;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* Mobile process cards — tap or dot to navigate; auto-advances via JS */
@@ -826,21 +838,83 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .process-path-line,
-  .process-node,
-  .process-detail-card {
+  .process-node:not(.process-node--interactive),
+  .process-detail-card:not(.process-detail-card--interactive) {
     animation: none;
   }
 
-  .process-detail-card:first-of-type {
+  .process-diagram--interactive .process-path-line {
+    animation: none;
+  }
+
+  .process-detail-card:first-of-type:not(.process-detail-card--interactive) {
     opacity: 1;
     position: relative;
   }
 
-  .process-detail-card:not(:first-of-type) {
+  .process-detail-card:not(:first-of-type):not(.process-detail-card--interactive) {
     display: none;
   }
 
   .process-mobile-hint {
     display: none;
   }
+}
+
+/* ─── Scroller Scenery (CodePen GRaaNgx) ─── */
+
+.scenery-scroll-element {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 6000px;
+  width: 1px;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.scenery-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.scenery-svg-host {
+  width: 100%;
+  height: 100vh;
+}
+
+.scenery-svg-host svg {
+  display: block;
+  width: 100%;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.scenery-veil {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 18, 0.55) 0%,
+    rgba(10, 10, 18, 0.2) 40%,
+    rgba(10, 10, 18, 0.35) 70%,
+    rgba(10, 10, 18, 0.6) 100%
+  );
+  pointer-events: none;
+}
+
+.scenery-svg-host #info,
+.scenery-svg-host #info2,
+.scenery-svg-host #text,
+.scenery-svg-host #text2,
+.scenery-svg-host #arrow,
+.scenery-svg-host #arrow2 {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }

@@ -22,7 +22,6 @@ const initialFormData: FormData = {
 const propertyTypes = [
   "Residential",
   "HOA/Community",
-  "Commercial",
   "Leasing Office",
   "Other",
 ];
@@ -50,9 +49,8 @@ export default function ContactForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          access_key: "YOUR_WEB3FORMS_ACCESS_KEY",
-          to: "matc.byrne@gmail.com",
-          subject: `New Contact — ${formData.propertyType || "General"}`,
+          access_key: "cdb4f08d-26f3-46ff-aca0-9e35349d14cd",
+          subject: `New Contact — ${formData.propertyType || "General"} — ${formData.name}`,
           from_name: formData.name,
           ...formData,
         }),
@@ -335,7 +333,8 @@ export default function ContactForm() {
                   <div>
                     <p className="text-sm font-medium text-gray-900">Service Area</p>
                     <p className="text-sm text-gray-500">
-                      Serving the Bay Area
+                      Livermore, Dublin, Pleasanton, San Ramon, Danville &amp; Bay
+                      Area
                     </p>
                   </div>
                 </div>
